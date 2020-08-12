@@ -1,4 +1,6 @@
 package com.projects.redditclone.service;
+import com.projects.redditclone.dto.AuthenticationResponse;
+import com.projects.redditclone.dto.LoginRequest;
 import com.projects.redditclone.dto.RegisterRequest;
 import com.projects.redditclone.exception.SpringRedditException;
 import com.projects.redditclone.model.NotificationEmail;
@@ -7,6 +9,10 @@ import com.projects.redditclone.model.VerificationToken;
 import com.projects.redditclone.repository.UserRepository;
 import com.projects.redditclone.repository.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +29,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
+    private final JWTProvide jwtProvide;
 
     @Transactional
     public void signup(RegisterRequest registerRequest){
@@ -59,5 +67,13 @@ public class AuthService {
         User user = userRepository.findByUsername(username).orElseThrow(()->new SpringRedditException("User not found"));
         user.setEnabled(true);
         userRepository.save(user);
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authenticate =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername()
+                ,loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String token = jwtProvide.generateToken(authenticate);
+        return new AuthenticationResponse(token,loginRequest.getUsername());
     }
 }
