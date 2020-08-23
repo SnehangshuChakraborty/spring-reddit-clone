@@ -1,9 +1,9 @@
 package com.projects.redditclone.service;
 
 import com.projects.redditclone.exception.SpringRedditException;
-import com.projects.redditclone.model.User;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +35,7 @@ public class JWTProvide {
         }
     }
     public String generateToken(Authentication authentication){
-        User principal = (User) authentication.getPrincipal();
+        User principal=(User)authentication.getPrincipal();
         return Jwts.builder()
                 .setSubject(principal.getUsername())
                 .signWith(getPrivateKey())
